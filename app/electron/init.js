@@ -28,7 +28,7 @@ try {
   app.on('ready', function(){
 
     let options = manifest.config.window;
-    options.show = false;
+    options.show = true;
     options.webPreferences = {
         devTools: manifest.config.debug || false,
         nodeIntegration: true,
@@ -46,6 +46,8 @@ try {
     }
 
     MainWin = new BrowserWindow(options);
+MainWin.webContents.openDevTools({mode: "undocked"});
+
 
     //Frameless
     if (options.frame === false) MainWin.isFrameless = true;
@@ -88,8 +90,12 @@ try {
     //enable ipc
     ipc.window(MainWin);
     remote.initialize();
+
+
     
-    MainWin.loadFile(manifest.config.window.view);
+MainWin.loadFile(manifest.config.window.view).catch(err => {
+  dialog.showErrorBox("Load Error", `Failed to load window view:\n${err}`);
+});
     
     const isReady = [
 		new Promise(function(resolve) { 
@@ -129,3 +135,7 @@ try {
   dialog.showErrorBox("Critical Error", `Failed to initialize:\n${err}`);
   app.quit();
 }
+
+
+
+
