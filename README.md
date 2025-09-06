@@ -1,7 +1,5 @@
-**⚠️ NB: The cache server was shutdown over a year ago.<br />
-You need a Steam Web API key for the app to be able to fetch data from Steam.<br />
-You can acquire one [by filling out this form](https://steamcommunity.com/dev/apikey).<br />
-Enter your key in `Settings > Advanced`.**
+I will be attempting to rewrite this project to run natively on linux. Ill probably use libnotify to replace toast. 
+Currently havent even touched it
 
 <hr />
 
