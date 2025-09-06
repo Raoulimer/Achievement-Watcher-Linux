@@ -1,0 +1,28 @@
+{
+  "name": "achievement-watcher-linux",
+  "version": "1.0.0",
+  "description": "I will be attempting to rewrite this project to run natively on linux. Ill probably use libnotify to replace toast.  Currently havent even touched it",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Raoulimer/Achievement-Watcher-Linux.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Raoulimer/Achievement-Watcher-Linux/issues"
+  },
+  "homepage": "https://github.com/Raoulimer/Achievement-Watcher-Linux#readme",
+  "dependencies": {
+    "asar": "^3.2.0",
+    "json": "^11.0.0"
+  }
+}

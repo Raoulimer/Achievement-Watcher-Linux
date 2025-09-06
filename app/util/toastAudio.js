@@ -1,46 +1,24 @@
 'use strict';
 
 const path = require('path');
-const regedit = require('regodit');
+const { getConfig, setConfig } = require('./registry');
 
-module.exports.getDefault = () => {
+const DEFAULT_WAV = "Linux Notify System Generic.wav";
+const CONFIG_FILE = "toastAudio.json";
 
-  const _default_ = "Windows Notify System Generic.wav";
-  
-  try{
-  
-    const filepath = regedit.RegQueryStringValue("HKCU","AppEvents/Schemes/Apps/.Default/Notification.Default/.Current","");
-  
-    if(filepath) {
-  
-      return path.parse(filepath).base;
-      
-    } else { return _default_ }
-  
-  }catch{ return _default_ }
-}
+module.exports.getDefault = async () => {
+  // On Linux, return a default .wav file name or custom if set
+  const config = await getConfig(CONFIG_FILE);
+  return config.default || DEFAULT_WAV;
+};
 
-module.exports.setCustom = (filename) => {
-  try{
-  
-    const file = path.join(process.env['WINDIR'],"Media",filename);
-    
-    regedit.RegWriteStringValue("HKCU","AppEvents/Schemes/Apps/.Default/Notification.Achievement/.Current","",file);
-    regedit.RegWriteStringValue("HKCU","AppEvents/Schemes/Apps/.Default/Notification.Achievement/.Default","",file);
-  
-  }catch{/*Do nothing*/}
-}
+module.exports.setCustom = async (filename) => {
+  const config = await getConfig(CONFIG_FILE);
+  config.custom = filename;
+  await setConfig(CONFIG_FILE, config);
+};
 
-module.exports.getCustom = () => {
-  try{
-  
-    const filepath = regedit.RegQueryStringValue("HKCU","AppEvents/Schemes/Apps/.Default/Notification.Achievement/.Current","");
-  
-    if(filepath) {
-  
-      return path.parse(filepath).base;
-      
-    } else { return "" }
-  
-  }catch{ return "" }
-}
+module.exports.getCustom = async () => {
+  const config = await getConfig(CONFIG_FILE);
+  return config.custom || "";
+};

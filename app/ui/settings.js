@@ -113,18 +113,7 @@ const appPath = remote.app.getAppPath();
           //Do nothing
           debug.log(err);
         });
-        
-        try {
-          //The API used by windows-focus-assist can change/break at any time in the future.
-          //Show focus assist state for information
-          const { getFocusAssist } = require('windows-focus-assist');
-          const focusAssist = getFocusAssist();
-          $("#focus-assist-state span").attr("data-state",focusAssist.value).text(focusAssist.name);
-          $("#focus-assist-state").show();
-        }catch(err){
-          $("#focus-assist-state").hide();
-          debug.log(err)
-        }
+  
            
      });
      

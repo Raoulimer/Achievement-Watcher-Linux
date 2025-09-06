@@ -1,81 +1,49 @@
 "use strict";
 
-const regedit = require('regodit');
+const { getConfig } = require('../util/registry');
 
-module.exports.scan = async() => {
+module.exports.scan = async () => {
   try {
-  
+    // On Linux, simulate the registry keys as JSON
+    const greenlumaData = await getConfig('greenluma.json');
+    // Structure: { glr: [...], gl2020: [...] }
     let data = [];
 
-    const keys = {
-      glr: await regedit.promises.RegListAllSubkeys("HKCU","SOFTWARE/GLR/AppID"),
-      gl2020: await regedit.promises.RegListAllSubkeys("HKCU","SOFTWARE/GL2020/AppID")
-    };
-
-    if(keys.glr){
-      for (let key of keys.glr) 
-      {
-        try {
-          let glr_ach_enable = parseInt(await regedit.promises.RegQueryIntegerValue("HKCU",`SOFTWARE/GLR/AppID/${key}`,"SkipStatsAndAchievements"));
-          if(glr_ach_enable === 0) {
-               data.push({appid: key,
-                          source: "GreenLuma Reborn",
-                           data: {
-                              type: "reg",
-                              root: "HKCU",
-                              path: `SOFTWARE/GLR/AppID/${key}/Achievements`}
-                        });
-               }
-         }catch{}
-       }
-    }
-    
-    if(keys.gl2020){
-      for (let key of keys.gl2020) 
-      {
-        try {
-          let glr_ach_enable = parseInt(await regedit.promises.RegQueryIntegerValue("HKCU",`SOFTWARE/GL2020/AppID/${key}`,"SkipStatsAndAchievements"));
-          if(glr_ach_enable === 0) {
-               data.push({appid: key,
-                          source: "GreenLuma 2020",
-                           data: {
-                              type: "reg",
-                              root: "HKCU",
-                              path: `SOFTWARE/GL2020/AppID/${key}/Achievements`}
-                        });
-               }
-         }catch{}
-       }
-    }
-    
-    return data;
-  
-  }catch(err){
-    throw err;
-  }
-}
-
-module.exports.getAchievements = async (root,key) => {
-  try {
-  
-    let achievements = await regedit.promises.RegListAllValues(root,key);
-    if (!achievements) throw "No achievement found in registry";
-    
-    let result = [];
-    
-    for (let achievement of achievements){
-      if(!achievement.endsWith("_Time")) {
-        result.push({
-          id: achievement,
-          Achieved: parseInt(await regedit.promises.RegQueryIntegerValue(root,key,achievement)),
-          UnlockTime: parseInt(await regedit.promises.RegQueryIntegerValue(root,key,achievement + "_Time"))  
-        });
+    for (const source of ['glr', 'gl2020']) {
+      if (greenlumaData[source]) {
+        for (const key of greenlumaData[source]) {
+          if (key.SkipStatsAndAchievements === 0) {
+            data.push({
+              appid: key.appid,
+              source: source === 'glr' ? "GreenLuma Reborn" : "GreenLuma 2020",
+              data: {
+                type: "reg",
+                root: "HKCU",
+                path: `SOFTWARE/${source === 'glr' ? 'GLR' : 'GL2020'}/AppID/${key.appid}/Achievements`
+              }
+            });
+          }
+        }
       }
     }
-    
-    return result;   
-  
-  }catch(err){
+    return data;
+  } catch (err) {
     throw err;
   }
-}
+};
+
+module.exports.getAchievements = async (root, key) => {
+  try {
+    // Simulate achievements per app as JSON
+    const greenlumaData = await getConfig('greenluma.json');
+    const [source, appid] = key.split('/').slice(-2);
+    const achievements = greenlumaData[source]?.find(k => k.appid === appid)?.achievements || [];
+    return achievements.map(a => ({
+      id: a.id,
+      Achieved: a.Achieved,
+      UnlockTime: a.UnlockTime
+    }));
+  } catch (err) {
+    throw err;
+  }
+};
