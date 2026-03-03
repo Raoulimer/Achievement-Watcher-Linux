@@ -1,8 +1,15 @@
 //From notification-state-ffi: https://github.com/xan105/node-notification-state-ffi | MIT license 
 //CJS. Use above lib when moving to ESM 
 const { promisify } = require('util'); 
-const ffi = require('ffi-napi');
-const ref = require('ref-napi');
+const os = require('os');
+let ffi, ref;
+
+if (os.platform() === 'win32') {
+  try {
+    ffi = require('ffi-napi');
+    ref = require('ref-napi');
+  } catch(e) {}
+}
 
 const QUERY_USER_NOTIFICATION_STATE = {
   1: "QUNS_NOT_PRESENT", //A screen saver is displayed, the machine is locked, or a nonactive Fast User Switching session is in progress
@@ -14,11 +21,17 @@ const QUERY_USER_NOTIFICATION_STATE = {
   7: "QUNS_APP" //A Windows Store app is running fullscreen
 };
   
-const lib = ffi.Library("shell32.dll", {
-  SHQueryUserNotificationState: ["long", ["int32 *"], { abi: ffi.FFI_WIN64 }]
-});
+let lib;
+if (ffi) {
+  try {
+    lib = ffi.Library("shell32.dll", {
+      SHQueryUserNotificationState: ["long", ["int32 *"], { abi: ffi.FFI_WIN64 }]
+    });
+  } catch(e) {}
+}
 
 async function queryUserNotificationState(){
+  if (!lib || !ref) return "QUNS_ACCEPTS_NOTIFICATIONS";
   let pquns = ref.alloc(ref.types.int32); //allocate 4 bytes for the output data
   const hres = await promisify(lib.SHQueryUserNotificationState.async)(pquns);
   if (hres < 0) {

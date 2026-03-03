@@ -6,7 +6,14 @@ const { spawn } = require("child_process");
 const path = require('path');
 const getStartApps = require('get-startapps');
 const watch = require('node-watch');
-const tasklist = require('win-tasklist');
+let tasklist;
+if (os.platform() === 'win32') {
+    try {
+        tasklist = require('win-tasklist');
+    } catch(e) {}
+} else {
+    tasklist = { isProcessRunning: async () => true };
+}
 const moment = require("moment");
 const websocket = require("./websocket.js");
 const processPriority = require("./util/priority.js");
@@ -19,12 +26,19 @@ const playtimeMonitor = require("./playtime/monitor.js");
 const notify = require("./notification/toaster.js");
 const debug = require("./util/log.js");
 const { crc32 } = require('crc');
-const { isWinRTAvailable } = require('powertoast');
 const { isFullscreenAppRunning } = require('./queryUserNotificationState.js');
 
+let isWinRTAvailable = () => false;
+if (os.platform() === 'win32') {
+    try {
+        isWinRTAvailable = require('powertoast').isWinRTAvailable;
+    } catch(e) {}
+}
+
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
 const cfg_file = {
-  option: path.join(process.env['APPDATA'],"Achievement Watcher/cfg","options.ini"),
-  userDir: path.join(process.env['APPDATA'],"Achievement Watcher/cfg","userdir.db")
+  option: path.join(appData,"Achievement Watcher/cfg","options.ini"),
+  userDir: path.join(appData,"Achievement Watcher/cfg","userdir.db")
 }
 
 var app = { 

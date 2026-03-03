@@ -30,6 +30,7 @@
     "humanize-duration": "^3.25.1",
     "lodash.omit": "^4.5.0",
     "moment": "^2.29.1",
+    "node-notifier": "^10.0.1",
     "node-watch": "^0.6.4",
     "os-locale": "^3.1.0",
     "request-zero": "^0.3.2",

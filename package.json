@@ -23,6 +23,7 @@
   "homepage": "https://github.com/Raoulimer/Achievement-Watcher-Linux#readme",
   "dependencies": {
     "asar": "^3.2.0",
-    "json": "^11.0.0"
+    "json": "^11.0.0",
+    "node-notifier": "^10.0.1"
   }
 }

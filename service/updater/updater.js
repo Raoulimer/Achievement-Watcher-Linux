@@ -5,14 +5,27 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const asar = require('asar-node').register();
-const tasklist = require('win-tasklist');
-const toast = require('powertoast');
-const balloon = require('powerballoon');
+let tasklist, toast, balloon;
+if (os.platform() === 'win32') {
+  try {
+    tasklist = require('win-tasklist');
+    toast = require('powertoast');
+    balloon = require('powerballoon');
+  } catch(e) {}
+} else {
+  // Linux mocks
+  tasklist = { hasProcess: async () => false };
+  const notifier = require('node-notifier');
+  toast = async (opt) => notifier.notify({ title: opt.title, message: opt.message, icon: opt.icon });
+  balloon = toast;
+}
 const request = require('request-zero');
 const semver = require("./util/semver.js");
+
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
 const debug = new (require("@xan105/log"))({
   console: true,
-  file: path.join(process.env['APPDATA'],"Achievement Watcher/logs/updater.log")
+  file: path.join(appData,"Achievement Watcher/logs/updater.log")
 });
 const args = require('minimist');
 

@@ -6,14 +6,28 @@ const userShellFolder = require("../util/userShellFolder.js");
 const videoCapture = require("@xan105/video-capture");
 const screenshot = require("@xan105/screenshot");
 const toast = require("./transport/toast.js");
-const balloon = require("powerballoon");
 const gntp = require("./transport/gntp.js");
-const xinput = require("xinput-ffi");
 const fetch = require("./prefetch.js");
 const { broadcast } = require("../websocket.js");
-const regedit = require("regodit");
-
 const debug = require("../util/log.js");
+
+const os = require('os');
+let balloon, xinput, regedit;
+
+if (os.platform() === 'win32') {
+    try {
+        balloon = require("powerballoon");
+        xinput = require("xinput-ffi");
+        regedit = require("regodit");
+    } catch (e) {
+        debug.warn("Failed to load Windows-specific modules:", e);
+    }
+} else {
+    // Linux mocks or alternatives
+    balloon = async () => {}; // No-op
+    xinput = { rumble: async () => {} }; // No-op
+    regedit = { promises: { RegQueryIntegerValue: async () => 5 } }; // Mock with default duration
+}
 
 let videoIsRecording = false;
 
@@ -176,10 +190,17 @@ module.exports = async (message, option = {}) => {
 			
 			if(options.rumble){
 				if (!options.transport.toast) message.delay = 0;
-				const duration = +await regedit.promises.RegQueryIntegerValue("HKCU","Control Panel/Accessibility","MessageDuration").catch(()=>{ return null }) || 5; 
+                let duration = 5;
+                if (regedit && regedit.promises) {
+					try {
+						duration = +await regedit.promises.RegQueryIntegerValue("HKCU","Control Panel/Accessibility","MessageDuration") || 5;
+					} catch (e) { duration = 5; }
+                }
 				setTimeout(function(){ 
 					debug.log("XInput Rumble");
-					xinput.rumble({forceStateWhileRumble: true}).catch( (err) => { debug.warn(err) });
+                    if (xinput && xinput.rumble) {
+					    xinput.rumble({forceStateWhileRumble: true}).catch( (err) => { debug.warn(err) });
+                    }
 				}, (duration * 1000) * message.delay || 0);
 			}
 			

@@ -2,15 +2,27 @@
 
 const os = require("os");
 const path = require("path");
-const toast = require("powertoast");
-const balloon = require("powerballoon");
-const getStartApps = require('get-startapps');
-const regedit = require('regodit');
+let toast, balloon, getStartApps, regedit, xinput;
+if (os.platform() === 'win32') {
+  try {
+    toast = require("powertoast");
+    balloon = require("powerballoon");
+    getStartApps = require('get-startapps');
+    regedit = require('regodit');
+    xinput = require("xinput-ffi");
+  } catch(e) {}
+} else {
+    const notifier = require('node-notifier');
+    toast = async (opt) => notifier.notify({ title: opt.title, message: opt.message, icon: opt.icon });
+    balloon = toast;
+    getStartApps = { has: async () => false };
+    xinput = { rumble: async () => {} };
+}
 const gntp = require("./notification/transport/gntp.js");
 const settings = require('./settings.js');
-const xinput = require("xinput-ffi");
 
-const cfg_file = path.join(process.env['APPDATA'],"Achievement Watcher/cfg","options.ini");
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
+const cfg_file = path.join(appData,"Achievement Watcher/cfg","options.ini");
 
 let winRT;
 try {
