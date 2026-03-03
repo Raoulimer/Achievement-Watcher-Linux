@@ -1,5 +1,10 @@
 I will be attempting to rewrite this project to run natively on linux. Ill probably use libnotify to replace toast. 
-Currently havent even touched it
+
+### Linux Port Updates
+*   Swapped Windows toast notifications for `libnotify` (using `node-notifier`) on Linux.
+*   Added mocks for Windows-only dependencies like `tasklist` and `powertoast` to prevent crashes.
+*   Config files now correctly save to `~/.config` on Linux.
+*   **Heads up:** Not a lot of testing has been done yet.
 
 <hr />
 
