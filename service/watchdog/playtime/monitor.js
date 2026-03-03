@@ -4,18 +4,26 @@ const os = require('os');
 const path = require('path');
 const fs = require('@xan105/fs');
 const request = require('request-zero');
-const regedit = require('regodit');
-const WQL = require('wql-process-monitor');
+let regedit, WQL, tasklist;
+
+if (os.platform() === 'win32') {
+    try {
+        regedit = require('regodit');
+        WQL = require('wql-process-monitor');
+        tasklist = require('win-tasklist');
+    } catch(e) {}
+}
+
 const humanizeDuration = require("humanize-duration");
 const EventEmitter = require("emittery");
-const tasklist = require('win-tasklist');
 const Timer = require('./timer.js');
 const TimeTrack = require('./track.js');
 const { findByReadingContentOfKnownConfigfilesIn } = require('./steam_appid_find.js');
 
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
 const debug = new (require("@xan105/log"))({
   console: true,
-  file: path.join(process.env['APPDATA'],"Achievement Watcher/logs/playtime.log")
+  file: path.join(appData,"Achievement Watcher/logs/playtime.log")
 });
 
 const blacklist = require("./filter.json");
@@ -27,13 +35,13 @@ const filter = {
 	mute: {
 		dir: [
       systemTempDir,
-			process.env['USERPROFILE'],
-			process.env['APPDATA'],
-			process.env['LOCALAPPDATA'],
-			process.env['ProgramFiles'],
-			process.env['ProgramFiles(x86)'],
-			path.join(process.env['SystemRoot'],"System32"),
-			path.join(process.env['SystemRoot'],"SysWOW64")
+			process.env['USERPROFILE'] || process.env['HOME'],
+			process.env['APPDATA'] || appData,
+			process.env['LOCALAPPDATA'] || appData,
+			process.env['ProgramFiles'] || '/usr/bin',
+			process.env['ProgramFiles(x86)'] || '/usr/bin',
+			(process.env['SystemRoot']) ? path.join(process.env['SystemRoot'],"System32") : '/bin',
+			(process.env['SystemRoot']) ? path.join(process.env['SystemRoot'],"SysWOW64") : '/lib'
 		],
 		file: blacklist.mute
 	}	
@@ -42,6 +50,11 @@ const filter = {
 async function init(){
 
 	const emitter = new EventEmitter();
+    
+    if (os.platform() !== 'win32') {
+        debug.warn("Playtime tracking is not yet supported on Linux");
+        return emitter;
+    }
 
 	let nowPlaying = [];
 	let gameIndex = await getGameIndex();
@@ -160,8 +173,8 @@ async function getGameIndex(){
 	const { shouldArrayOfObjWithProperties } = (await import("@xan105/is")).assert;
 	
 	const filePath = {
-    cache: path.join(process.env['APPDATA'],"Achievement Watcher/steam_cache/schema","gameIndex.json"),
-    user: path.join(process.env['APPDATA'],"Achievement Watcher/cfg","gameIndex.json")
+    cache: path.join(appData,"Achievement Watcher/steam_cache/schema","gameIndex.json"),
+    user: path.join(appData,"Achievement Watcher/cfg","gameIndex.json")
   };
 	
 	let gameIndex, userOverride;

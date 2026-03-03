@@ -9,7 +9,8 @@ const debug = require("../util/log.js");
 
 module.exports = async (url, appID) => {
 	try{
-		const cache = path.join(process.env['APPDATA'],`Achievement Watcher/steam_cache/icon/${appID}`);
+		const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
+		const cache = path.join(appData,`Achievement Watcher/steam_cache/icon/${appID}`);
 		
 		const filename = path.parse(urlParser.parse(url).pathname).base;
 		const filePath = path.join(cache,filename);

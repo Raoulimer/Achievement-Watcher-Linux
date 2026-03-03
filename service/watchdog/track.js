@@ -1,6 +1,6 @@
 'use strict';
 
-const { getConfig, setConfig } = require('../../../app/util/registry');
+const { getConfig, setConfig } = require('../../app/util/registry');
 
 module.exports = async (appID, time) => {
     const playtimeData = await getConfig('playtime.json');

@@ -5,7 +5,7 @@ const ini = require("@xan105/ini");
 const parentFind = require('find-up');
 const omit = require('lodash.omit');
 const fs = require("@xan105/fs");
-const { getConfig } = require('../../../app/util/registry');
+const { getConfig } = require('../../app/util/registry');
 const sse = require("./sse.js");
 
 const files = {
@@ -39,11 +39,11 @@ module.exports.getFolders = async (userDir_file) => {
     },
     { 
       dir: path.join(process.env['HOME'], ".steam", "EMPRESS"), 
-      options: { recursive: true, filter: /([0-9]+)\\/remote\\/([0-9]+)/, file: [files.achievement[1]] }
+      options: { recursive: true, filter: /([0-9]+)\/remote\/([0-9]+)/, file: [files.achievement[1]] }
     },
     { 
       dir: path.join(process.env['HOME'], "Documents/EMPRESS"), 
-      options: { recursive: true, filter: /([0-9]+)\\/remote\\/([0-9]+)/, file: [files.achievement[1]] }
+      options: { recursive: true, filter: /([0-9]+)\/remote\/([0-9]+)/, file: [files.achievement[1]] }
     },
     { 
       dir: path.join(process.env['HOME'], ".steam", "SKIDROW"), 

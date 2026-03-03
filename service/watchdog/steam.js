@@ -5,6 +5,7 @@ const urlParser = require('url');
 const fs = require("@xan105/fs");
 const request = require('request-zero');
 const steamLang = require("./steam.json");
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
 
 module.exports.loadSteamData = async (appID, lang, key) => {
 
@@ -12,7 +13,7 @@ module.exports.loadSteamData = async (appID, lang, key) => {
         throw "Unsupported API language code";
   }
   
-  const cache = path.join(process.env['APPDATA'],"Achievement Watcher/steam_cache/schema",lang);
+  const cache = path.join(appData,"Achievement Watcher/steam_cache/schema",lang);
 
   try {
   
@@ -41,7 +42,7 @@ module.exports.loadSteamData = async (appID, lang, key) => {
 module.exports.fetchIcon = async (url,appID) => {
   try{
   
-    const cache = path.join(process.env['APPDATA'],`Achievement Watcher/steam_cache/icon/${appID}`);
+    const cache = path.join(appData,`Achievement Watcher/steam_cache/icon/${appID}`);
 
     const filename = path.parse(urlParser.parse(url).pathname).base;
 
@@ -113,7 +114,7 @@ async function findInAppList(appID){
   
   if (!appID || !(Number.isInteger(appID) && appID > 0)) throw "ERR_INVALID_APPID";
   
-  const cache = path.join(process.env['APPDATA'],"Achievement Watcher/steam_cache/schema");
+  const cache = path.join(appData,"Achievement Watcher/steam_cache/schema");
   const filepath = path.join(cache,"appList.json");
   
   try

@@ -3,15 +3,21 @@
 const path = require("path");
 const fs = require("@xan105/fs");
 const userShellFolder = require("../util/userShellFolder.js");
-const videoCapture = require("@xan105/video-capture");
-const screenshot = require("@xan105/screenshot");
 const toast = require("./transport/toast.js");
 const gntp = require("./transport/gntp.js");
 const fetch = require("./prefetch.js");
 const { broadcast } = require("../websocket.js");
 const debug = require("../util/log.js");
-
 const os = require('os');
+
+let videoCapture = { hwencode: async () => {} }, screenshot = async () => {};
+try {
+  videoCapture = require("@xan105/video-capture");
+} catch(e) {}
+try {
+  screenshot = require("@xan105/screenshot");
+} catch(e) {}
+
 let balloon, xinput, regedit;
 
 if (os.platform() === 'win32') {

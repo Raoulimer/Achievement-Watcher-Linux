@@ -4,7 +4,18 @@ const instance = new (require('single-instance'))('Achievement Watchdog');
 const os = require('os');
 const { spawn } = require("child_process");
 const path = require('path');
-const getStartApps = require('get-startapps');
+let getStartApps;
+if (os.platform() === 'win32') {
+    try {
+        getStartApps = require('get-startapps');
+    } catch(e) {}
+} else {
+    // Linux mock
+    getStartApps = {
+        has: async () => false,
+        isValidAUMID: async () => false
+    };
+}
 const watch = require('node-watch');
 let tasklist;
 if (os.platform() === 'win32') {

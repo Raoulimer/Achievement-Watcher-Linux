@@ -7,9 +7,11 @@ const https = require('https');
 const EventEmitter = require('emittery');
 const ws = require('ws');
 const moment = require("moment");
+const os = require('os');
+const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
 const debug = new (require("@xan105/log"))({
   console: true,
-  file: path.join(process.env['APPDATA'],"Achievement Watcher/logs/websocket.log")
+  file: path.join(appData,"Achievement Watcher/logs/websocket.log")
 });
 
 const test = require("./notification-test.js");
