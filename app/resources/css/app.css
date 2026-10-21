@@ -1581,3 +1581,8 @@ main {
     margin-top: 25px;
     font-size: 32px;
 }
+/* Linux build: settings that only exist on Windows (WinRT/balloon toast, GNTP, XInput rumble, GreenLuma, LumaPlay, NVIDIA/AMD capture) */
+body:not(.platform-win32) .win-only { display: none !important; }
+#watchdog-state span.running { color: #a1cd44; }
+#watchdog-state span.stopped { color: #ff5c5c; }
+body:not(.platform-linux) .linux-only { display: none !important; }

@@ -19,6 +19,11 @@ const debug = new (require("@xan105/log"))({
   file: path.join(remote.app.getPath('userData'),`logs/${remote.app.name}.log`)
 });
 
+//Text from game schemas / file names goes into HTML templates: never let it be parsed as markup
+const esc = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+//Image URL for a CSS url('...'): quotes, parentheses and backslashes would end the CSS string, so percent-encode them
+const cssUrl = (url) => String(url ?? "").replace(/['"()\\]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+
 var app = {
   args: getArgs(remote.process.argv),
   config : settings.load(),
@@ -31,6 +36,8 @@ var app = {
    let self = this;
    
    debug.log(`${remote.app.name} loading...`);
+
+   document.body.classList.add(`platform-${process.platform}`);
    
    $("title-bar")[0].inSettings = true;
    
@@ -94,14 +101,14 @@ var app = {
              
         let template = `
             <li>
-                <div class="game-box" data-index="${game}" data-appid="${list[game].appid}" data-time="${(timeMostRecent > 0) ? timeMostRecent : 0}" ${(list[game].system) ? `data-system="${list[game].system}"` : ''}>
+                <div class="game-box" data-index="${game}" data-appid="${esc(list[game].appid)}" data-time="${(timeMostRecent > 0) ? timeMostRecent : 0}" ${(list[game].system) ? `data-system="${list[game].system}"` : ''}>
                   <div class="loading-overlay"><div class="content"><i class="fas fa-spinner fa-spin"></i></div></div>
-                  ${(portrait && list[game].img.portrait) ? `<div class="header glow" style="background: url('${list[game].img.portrait}');">` : `<div class="header" style="background: url('${list[game].img.header}');">`}
+                  ${(portrait && list[game].img.portrait) ? `<div class="header glow" style="background: url('${esc(cssUrl(list[game].img.portrait))}');">` : `<div class="header" style="background: url('${esc(cssUrl(list[game].img.header))}');">`}
                   </div>
                   <div class="info">
-                       <div class="title">${list[game].name}</div>
+                       <div class="title">${esc(list[game].name)}</div>
                        <div class="progressBar" data-percent="${progress}"><span class="meter" style="width:${progress}%"></span></div>
-                       ${(list[game].source) ? `<div class="source">${list[game].source}</div>`: ''}
+                       ${(list[game].source) ? `<div class="source">${esc(list[game].source)}</div>`: ''}
                   </div>
                 </div>
             </li>
@@ -255,8 +262,8 @@ var app = {
             menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "Steam", click() {remote.shell.openExternal(`https://store.steampowered.com/app/${appid}/`)} }));
             menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "SteamDB", click() {remote.shell.openExternal(`https://steamdb.info/app/${appid}/`)} }));
             menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "PCGamingWiki", click() {remote.shell.openExternal(`https://pcgamingwiki.com/api/appid.php?appid=${appid}`)} }));
-            menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "API (Achievement schema)", click() {remote.shell.openExternal(`https://api.xan105.com/steam/ach/${appid}?lang=${app.config.achievement.lang}`)} }));
-            menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "API (App info)", click() {remote.shell.openExternal(`https://api.xan105.com/v2/steam/appinfo/${appid}`)} }));
+            menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "ProtonDB", click() {remote.shell.openExternal(`https://www.protondb.com/app/${appid}`)} }));
+            menu.append(new MenuItem({ icon: nativeImage.createFromPath(path.join(appPath,"resources/img/globe.png")), label: "Steam Community Guides", click() {remote.shell.openExternal(`https://steamcommunity.com/app/${appid}/guides/?browsefilter=trend&requiredtags[]=Achievements`)} }));
           }
 
          menu.popup({ window: remote.getCurrentWindow() });
@@ -294,9 +301,9 @@ var app = {
 
               if (game.system === "uplay" || game.img?.overlay === true) {
                 let gradient = `linear-gradient(to bottom right, rgba(0, 47, 75, .8), rgba(35, 54, 78, 0.9))`;
-                $("body").fadeIn().attr("style",`background: ${gradient}, url('${game.img.background}')`);
+                $("body").fadeIn().attr("style",`background: ${gradient}, url('${cssUrl(game.img.background)}')`);
               } else {
-                $("body").fadeIn().css("background",`url('${game.img.background}')`);
+                $("body").fadeIn().css("background",`url('${cssUrl(game.img.background)}')`);
               }
               
             } else {
@@ -310,7 +317,7 @@ var app = {
             }
             
             if(game.img.icon) {
-              $("#achievement .wrapper > .header .title .icon").css("background",`url('${game.img.icon}')`);
+              $("#achievement .wrapper > .header .title .icon").css("background",`url('${cssUrl(game.img.icon)}')`);
             }
 
             $("#achievement .wrapper > .header .title span").text(game.name);
@@ -365,18 +372,18 @@ var app = {
                 let template = `
                 <li>
                       
-                         <div class="achievement" data-name="${achievement.name}" data-index="${i}">
+                         <div class="achievement" data-name="${esc(achievement.name)}" data-index="${i}">
                             <div class="box">
                               <div class="glow mask contain">
                                   <div class="glow mask ray ">
                                     <div class="glow fx"></div>
                                   </div>
                               </div>
-                              <div class="icon" style="background: url('${achievement.Achieved ? achievement.icon : achievement.icongray}');"></div>
+                              <div class="icon" style="background: url('${esc(cssUrl(achievement.Achieved ? achievement.icon : achievement.icongray))}');"></div>
                             </div>
                             <div class="content">
-                                <div class="title">${game.system === "playstation" ? `<i class="fas fa-trophy" data-type="${achievement.type}"></i> ${achievement.displayName}` : `${achievement.displayName}`}</div>
-                                <div class="description">${achievement.description || ''}</div>
+                                <div class="title">${game.system === "playstation" ? `<i class="fas fa-trophy" data-type="${esc(achievement.type)}"></i> ${esc(achievement.displayName)}` : `${esc(achievement.displayName)}`}</div>
+                                <div class="description">${esc(achievement.description)}</div>
                                 <div class="progressBar" data-current="${achievement.CurProgress || '0'}" data-max="${achievement.MaxProgress || '0'}" data-percent="${percent}">
                                 <span class="meter" style="width:${percent}%"></span></div>
                             </div>
@@ -425,7 +432,7 @@ var app = {
               <li>
                 <div class="notice">
                   <p>${$("#unlock").data("lang-noneUnlocked")} <i class="fas fa-frown-open"></i> ${$("#unlock").data("lang-play")}</p>
-                  <p>⚠️ Why is nothing unlocking ? please kindly read the "FAQ / Troubleshoot" section of the <a href="https://github.com/xan105/Achievement-Watcher/wiki" target="_blank">Wiki</a>.</p>
+                  <p>Steam saves your progress locally once the game has been launched at least once with Steam online.</p>
                   </div>
               </li>`;
               unlock.append(template);

@@ -1,40 +1,36 @@
 {
   "private": true,
   "name": "Achievement-Watchdog",
-  "description": "Sidekick to Achievement Watcher for live notification on achievement unlocking",
+  "description": "Sidekick to Achievement Watcher: real-time notification on achievement unlocking (Steam client, Steam emulators)",
   "version": "2.3.4",
   "main": "watchdog.js",
   "engines": {
-    "node": "~14.0.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "start": "node watchdog.js",
-    "clean": "npm prune --production",
-    "prepare": "patch-package"
+    "test": "node test/run.js && node test/parse.js && node test/websocket.js && node test/process.js",
+    "clean": "npm prune --omit=dev",
+    "postinstall": "patch-package"
   },
   "author": "Anthony Beaumont",
   "license": "LGPL-3.0-only",
   "devDependencies": {
-    "patch-package": "^6.2.2"
+    "patch-package": "8.0.0"
   },
   "dependencies": {
     "@xan105/fs": "^1.2.0",
     "@xan105/ini": "^1.0.1",
-    "@xan105/is": "^2.4.0",
     "@xan105/log": "^1.0.2",
     "crc": "^3.8.0",
-    "emittery": "^0.7.2",
-    "fast-glob": "^3.2.5",
     "find-up": "^4.1.0",
-    "growly": "^1.3.0",
+    "growly": "1.3.0",
     "humanize-duration": "^3.25.1",
     "lodash.omit": "^4.5.0",
-    "moment": "^2.29.1",
-    "node-notifier": "^10.0.1",
     "node-watch": "^0.6.4",
     "os-locale": "^3.1.0",
     "request-zero": "^0.3.2",
     "single-instance": "0.0.1",
-    "ws": "^7.5.2"
+    "ws": "^8.18.0"
   }
 }

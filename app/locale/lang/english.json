@@ -73,7 +73,7 @@
         "transport": "Transport"
       },
       "info" : {
-        "toast" : "Some features are only available in Windows 10"
+        "toast" : "Desktop notifications (GNOME, KDE, any libnotify server)"
       },
       "option": {
         "notification" : {
@@ -89,12 +89,12 @@
           "description": "Notify on achievement progress if possible"
         },
         "playtime": {
-          "name": "Playtime tracking",
-          "description": "Notify on tracking start/end"
+          "name": "Session summary",
+          "description": "When you quit a Steam game: time played and achievements earned"
         },
         "customToastAudio" : {
           "name": "Toast sound",
-          "description": "Specifies the sound to play when a toast is displayed",
+          "description": "Sound played when you unlock an achievement (plays even over a fullscreen game)",
           "value": {
             "systemDefault": "Default",
             "muted": "Muted"
@@ -114,7 +114,7 @@
         },
         "useToast" : {
           "name": "Toast notification",
-          "description": "Windows 8-10 toast notification"
+          "description": "Desktop notification with the achievement icon; click it to open the game here"
         },
         "useWinRT" : {
           "name": "WinRT API",
@@ -181,11 +181,11 @@
     "source": {
       "legitSteam": {
         "name": "Display Steam Games",
-        "description": "Steam must be installed and your Steam profile public !",
+        "description": "Read offline from your Steam client (native, Flatpak or Snap). Private profiles work.",
         "value": {
           "none": "None",
           "installed": "Installed",
-          "owned": "Owned"
+          "owned": "All played"
         }
       },
       "steamEmu": {

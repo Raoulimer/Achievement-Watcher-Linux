@@ -1,10 +1,10 @@
 'use strict';
 
-const { 
-  app, 
-  BrowserWindow, 
-  dialog, 
-  session, 
+const {
+  app,
+  BrowserWindow,
+  dialog,
+  session,
   shell,
   ipcMain
 } = require('electron');
@@ -14,31 +14,44 @@ const path = require("path");
 const fs = require("fs");
 const ipc = require(path.join(__dirname,"ipc.js"));
 
+//Same folder as the watchdog (~/.config/Achievement Watcher) so both share options.ini and caches
+app.setName("Achievement Watcher");
+app.setPath("userData", path.join(app.getPath("appData"), "Achievement Watcher"));
+
+remote.initialize();
+
+(function main(){
 try {
 
-  if (app.requestSingleInstanceLock() !== true) app.quit();
+  //Already running: the first instance gets our argv in 'second-instance' (opens the game). Never build a window here
+  if (app.requestSingleInstanceLock() !== true) {
+    app.quit();
+    return;
+  }
 
   const manifest = require("../package.json");
+  const isDev = manifest.config.debug || process.argv.includes("--dev");
 
   if (manifest.config["disable-gpu"]) app.disableHardwareAcceleration();
   if (manifest.config.appid) app.setAppUserModelId(manifest.config.appid);
-  
+
   let MainWin = null;
-  
+
   app.on('ready', function(){
 
-    let options = manifest.config.window;
-    options.show = true;
+    let options = { ...manifest.config.window };
+    options.show = false;
+    options.icon = path.join(__dirname, "..", options.icon);
     options.webPreferences = {
-        devTools: manifest.config.debug || false,
+        devTools: isDev,
         nodeIntegration: true,
         contextIsolation: false,
+        sandbox: false,
         webviewTag: false,
-        v8CacheOptions: (manifest.config.debug) ? "none" : "code",
-        enableRemoteModule: true
+        spellcheck: false,
+        v8CacheOptions: (isDev) ? "none" : "code"
     };
-    
-    //electron 9 crash if no icon exists to specified path
+
     try{
       fs.accessSync(options.icon, fs.constants.F_OK);
     }catch{
@@ -46,19 +59,18 @@ try {
     }
 
     MainWin = new BrowserWindow(options);
-MainWin.webContents.openDevTools({mode: "undocked"});
-
+    remote.enable(MainWin.webContents);
 
     //Frameless
     if (options.frame === false) MainWin.isFrameless = true;
-    
+
     //Debug tool
-    if (manifest.config.debug) {
+    if (isDev) {
       MainWin.webContents.openDevTools({mode: "undocked"});
       MainWin.isDev = true;
       console.info((({node,electron,chrome })=>({node,electron,chrome}))(process.versions));
       try {
-        const contextMenu = require('electron-context-menu')({
+        require('electron-context-menu')({
 			append: (defaultActions, params, browserWindow) => [
 				{
 					label: 'Reload', visible: params, click: () => { MainWin.reload() }
@@ -66,7 +78,7 @@ MainWin.webContents.openDevTools({mode: "undocked"});
 			]
         });
       }catch(err){
-        dialog.showMessageBoxSync({type: "warning",title: "Context Menu", message: "Failed to initialize context menu.", detail: `${err}`});
+        console.warn(`Failed to initialize context menu: ${err}`);
       }
     }
 
@@ -77,35 +89,35 @@ MainWin.webContents.openDevTools({mode: "undocked"});
       callback({ cancel: false, requestHeaders: details.requestHeaders });
     });
 
-    //External open links
-    const openExternal = function(event, url) {
-      if (!url.startsWith("file:///")) {
+    //External links open in the default browser, never inside the app
+    const isExternal = (url) => /^https?:\/\//i.test(url);
+    MainWin.webContents.on('will-navigate', (event, url) => {
+      if (!url.startsWith("file://")) {
         event.preventDefault();
-        shell.openExternal(url).catch(()=>{});
+        if (isExternal(url)) shell.openExternal(url).catch(()=>{});
       }
-    };
-    MainWin.webContents.on('will-navigate', openExternal); //a href
-    MainWin.webContents.on('new-window', openExternal); //a href target="_blank"
-    
+    });
+    MainWin.webContents.setWindowOpenHandler(({ url }) => {
+      if (isExternal(url)) shell.openExternal(url).catch(()=>{});
+      return { action: "deny" };
+    });
+
     //enable ipc
     ipc.window(MainWin);
-    remote.initialize();
 
+    MainWin.loadFile(path.join(__dirname, "..", manifest.config.window.view)).catch(err => {
+      dialog.showErrorBox("Load Error", `Failed to load window view:\n${err}`);
+    });
 
-    
-MainWin.loadFile(manifest.config.window.view).catch(err => {
-  dialog.showErrorBox("Load Error", `Failed to load window view:\n${err}`);
-});
-    
     const isReady = [
-		new Promise(function(resolve) { 
+		new Promise(function(resolve) {
 			MainWin.once('ready-to-show', () => { return resolve() }); //Window is loaded and ready to be drawn
 		}),
-		new Promise(function(resolve) { 
-			ipcMain.handleOnce('components-loaded', () => { return resolve() }); //Wait for custom event 
+		new Promise(function(resolve) {
+			ipcMain.handleOnce('components-loaded', () => { return resolve() }); //Wait for custom event
 		})
     ];
-    
+
     Promise.all(isReady).then(() => {
         MainWin.show();
 		MainWin.focus();
@@ -120,9 +132,7 @@ MainWin.loadFile(manifest.config.window.view).catch(err => {
       app.quit();
   })
   .on('web-contents-created', (event, contents) => {
-      contents.on('new-window', (event, url) => {
-        event.preventDefault();
-      });
+      contents.setWindowOpenHandler(() => ({ action: "deny" }));
    })
    .on('second-instance', (event, argv, cwd) => {
     if (MainWin) {
@@ -135,7 +145,4 @@ MainWin.loadFile(manifest.config.window.view).catch(err => {
   dialog.showErrorBox("Critical Error", `Failed to initialize:\n${err}`);
   app.quit();
 }
-
-
-
-
+})();

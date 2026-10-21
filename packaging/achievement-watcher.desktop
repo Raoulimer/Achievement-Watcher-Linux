@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Achievement Watcher
+GenericName=Achievement Viewer
+Comment=Your Steam achievements, unlock times and progress, with real-time notifications
+Exec="@ROOT@/bin/achievement-watcher" %U
+Icon=@ROOT@/app/resources/icon/icon.png
+Terminal=false
+Categories=Game;
+Keywords=steam;achievement;trophy;proton;
+StartupWMClass=achievement-watcher
+StartupNotify=true

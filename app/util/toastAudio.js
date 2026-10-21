@@ -1,24 +1,44 @@
 'use strict';
 
+/*
+  Achievement sound.
+  customToastAudio: 0 = silent, 1 = desktop sound theme ("complete"), 2 = one of the bundled sounds (notification_toast.audioFile)
+  Shared by the settings UI (preview) and the watchdog (playback).
+*/
+
+const fs = require('fs');
 const path = require('path');
-const { getConfig, setConfig } = require('./registry');
 
-const DEFAULT_WAV = "Linux Notify System Generic.wav";
-const CONFIG_FILE = "toastAudio.json";
+const SOUNDS_DIR = path.join(__dirname, "../resources/sounds");
 
-module.exports.getDefault = async () => {
-  // On Linux, return a default .wav file name or custom if set
-  const config = await getConfig(CONFIG_FILE);
-  return config.default || DEFAULT_WAV;
-};
+//freedesktop sound theme: Yaru (Ubuntu) then the generic theme
+const THEME_SOUNDS = [
+  "/usr/share/sounds/Yaru/stereo/complete.oga",
+  "/usr/share/sounds/freedesktop/stereo/complete.oga"
+];
 
-module.exports.setCustom = async (filename) => {
-  const config = await getConfig(CONFIG_FILE);
-  config.custom = filename;
-  await setConfig(CONFIG_FILE, config);
-};
+function getDefault() {
+  return THEME_SOUNDS.find(file => fs.existsSync(file)) || null;
+}
 
-module.exports.getCustom = async () => {
-  const config = await getConfig(CONFIG_FILE);
-  return config.custom || "";
-};
+function listBundled() {
+  try {
+    return fs.readdirSync(SOUNDS_DIR).filter(f => /\.(wav|oga|ogg)$/i.test(f));
+  } catch {
+    return [];
+  }
+}
+
+//Absolute path of the sound to play for the given options, or null for silence
+function resolve(notificationToastOptions = {}) {
+  const mode = +notificationToastOptions.customToastAudio;
+  if (mode === 1) return getDefault();
+  if (mode === 2) {
+    const file = path.basename(notificationToastOptions.audioFile || "");
+    const full = path.join(SOUNDS_DIR, file);
+    return (file && fs.existsSync(full)) ? full : getDefault();
+  }
+  return null;
+}
+
+module.exports = { SOUNDS_DIR, getDefault, listBundled, resolve };

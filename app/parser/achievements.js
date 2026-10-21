@@ -3,7 +3,6 @@
 const remote = require('@electron/remote');
 const path = require("path");
 const steam = require(path.join(appPath,"parser/steam.js"));
-const uplay = require(path.join(appPath,"parser/uplay.js"));
 const rpcs3 = require(path.join(appPath,"parser/rpcs3.js"));
 const greenluma = require(path.join(appPath,"parser/greenluma.js"));
 const userDir = require(path.join(appPath,"parser/userDir.js"));
@@ -76,22 +75,6 @@ async function discover(source) {
       }
     }
     
-    if (source.lumaPlay){
-      //Lumaplay
-      try{
-        data = data.concat(await uplay.scan());
-      }catch(err){
-        debug.error(err);
-      }
-      
-      //Uplay
-      try{
-        data = data.concat(await uplay.scanLegit());
-      }catch(err){
-        debug.error(err);
-      }
-    }
-    
     if(source.importCache){
       try{
         data = data.concat(await watchdog.scan());
@@ -129,6 +112,7 @@ module.exports.makeList = async(option, callbackProgress = ()=>{}) => {
             let percent = Math.floor((count/appidList.length)*100);
 
             let game;
+            let localRoot = null;
             let isDuplicate = false;
 
             try {
@@ -137,10 +121,10 @@ module.exports.makeList = async(option, callbackProgress = ()=>{}) => {
                   game = result.find( elem => elem.appid == appid.appid);
                   isDuplicate = true;
                 }
-                else if (appid.data.type === "rpcs3"){
+                else if (appid.data.type === "steamLocal"){
+                  ({ game, root: localRoot } = await steam.getGameDataFromLocal({ root: appid.data.root, accountId: appid.data.accountId, appID: appid.appid, lang: option.achievement.lang, name: appid.data.name }));
+                }else if (appid.data.type === "rpcs3"){
                   game = await rpcs3.getGameData(appid.data.path);
-                }else if (appid.data.type === "uplay" || appid.data.type === "lumaplay"){
-                  game = await uplay.getGameData(appid.appid,option.achievement.lang);
                 }else{
                   game = await steam.getGameData({appID: appid.appid, lang: option.achievement.lang, key: option.steam.apiKey });    
                 }
@@ -149,7 +133,11 @@ module.exports.makeList = async(option, callbackProgress = ()=>{}) => {
 
                 let root = {};
                 try {
-                  if (appid.data.type === "file") {
+                  if (appid.data.type === "steamLocal") {
+
+                      root = localRoot || (await steam.getGameDataFromLocal({ root: appid.data.root, accountId: appid.data.accountId, appID: appid.appid, lang: option.achievement.lang })).root;
+
+                   } else if (appid.data.type === "file") {
                   
                       root = await steam.getAchievementsFromFile(appid.data.path);
                       //Note to self: Empty file should be considered as a 0% game -> do not throw an error just issue a warning
@@ -166,10 +154,6 @@ module.exports.makeList = async(option, callbackProgress = ()=>{}) => {
                    } else if (appid.data.type === "rpcs3"){
                     
                      root = await rpcs3.getAchievements(appid.data.path,game.achievement.total);
-                     
-                   } else if (appid.data.type === "lumaplay"){
-                    
-                     root = uplay.getAchievementsFromLumaPlay(appid.data.root,appid.data.path);
                      
                    } else if (appid.data.type === "cached"){
                    

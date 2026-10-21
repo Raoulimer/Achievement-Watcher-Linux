@@ -49,7 +49,7 @@ module.exports.load = ()=>{
         //Source
         
         if (options.achievement_source.legitSteam != 0 && options.achievement_source.legitSteam != 1 && options.achievement_source.legitSteam != 2){
-          options.achievement_source.legitSteam = 0;
+          options.achievement_source.legitSteam = 1;
         }
         
         if (typeof options.achievement_source.steamEmu !== "boolean"){
@@ -79,13 +79,25 @@ module.exports.load = ()=>{
         }
 
         if (typeof options.notification.rumble !== "boolean"){
-          options.notification.rumble = true;
+          options.notification.rumble = false;
         }
         
         if (typeof options.notification.notifyOnProgress !== "boolean"){
           options.notification.notifyOnProgress = true;
         }
         
+        if (![6,12,20,30,60].includes(+options.notification.inGameDuration)){
+          options.notification.inGameDuration = 12;
+        }
+
+        if (!["bottom-right","top-right","bottom-left","top-left"].includes(options.notification.inGamePosition)){
+          options.notification.inGamePosition = "bottom-right";
+        }
+
+        if (typeof options.notification.inGamePopup !== "boolean"){
+          options.notification.inGamePopup = true;
+        }
+
         if (typeof options.notification.playtime !== "boolean"){
           options.notification.playtime = false;
         }
@@ -100,6 +112,10 @@ module.exports.load = ()=>{
           options.notification_toast.toastSouvenir = 0;
         }
         
+        if (typeof options.notification_toast.audioFile !== "string"){
+          options.notification_toast.audioFile = "";
+        }
+
         if (typeof options.notification_toast.groupToast !== "boolean"){
           options.notification_toast.groupToast = false;
         }
@@ -111,11 +127,11 @@ module.exports.load = ()=>{
         }
         
         if (typeof options.notification_transport.winRT !== "boolean"){
-          options.notification_transport.winRT = true;
+          options.notification_transport.winRT = false;
         }
         
         if (typeof options.notification_transport.balloon !== "boolean"){
-          options.notification_transport.balloon = true;
+          options.notification_transport.balloon = false;
         }
         
         if (typeof options.notification_transport.websocket !== "boolean"){
@@ -123,7 +139,7 @@ module.exports.load = ()=>{
         }
         
         if (typeof options.notification_transport.gntp !== "boolean"){
-          options.notification_transport.gntp = true;
+          options.notification_transport.gntp = false;
         }  
 
         //Advanced
@@ -147,7 +163,7 @@ module.exports.load = ()=>{
         //Souvenir
         
         if (typeof options.souvenir_screenshot.screenshot !== "boolean"){
-          options.souvenir_screenshot.screenshot = true;
+          options.souvenir_screenshot.screenshot = false;
         }
         
         if (typeof options.souvenir_screenshot.custom_dir !== "string"){
@@ -229,30 +245,34 @@ module.exports.load = ()=>{
             hideZero: false
           },
           achievement_source: {
-            legitSteam: 0,
+            legitSteam: 1,
             steamEmu: true,
-            greenLuma: true,
+            greenLuma: false,
             rpcs3: true,
             lumaPlay: false,
             importCache: true
           },
           notification: {
-            notify: true,           
-            rumble: true,
+            notify: true,
+            rumble: false,
             notifyOnProgress: true,
+            inGamePopup: true,
+            inGameDuration: 12,
+            inGamePosition: "bottom-right",
             playtime: false
           },
           notification_toast: {
             customToastAudio: 1,
             toastSouvenir: 0,
+            audioFile: "",
             groupToast: false 
           },
           notification_transport: {
             toast: true,
-            winRT: true,
-            balloon: true,
+            winRT: false,
+            balloon: false,
             websocket: true,
-            gntp: true
+            gntp: false
           },
           notification_advanced: {
             timeTreshold: 10,
@@ -261,7 +281,7 @@ module.exports.load = ()=>{
             iconPrefetch: true          
           },
           souvenir_screenshot: {
-            screenshot: true,
+            screenshot: false,
             custom_dir: "",
             overwrite_image: false
           },

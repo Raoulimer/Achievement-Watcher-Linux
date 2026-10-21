@@ -2,7 +2,6 @@
 
 const remote = require('@electron/remote');
 const path = require("path");
-const request = require('request-zero');
 const ffs = require("@xan105/fs");
 const debug = new (require("@xan105/log"))({
   console: remote.getCurrentWindow().isDev || false,
@@ -13,24 +12,18 @@ const file = path.join(remote.app.getPath('userData'),"cfg/exclusion.db");
 
 module.exports.get = async () => {
 
-  const url = "https://api.xan105.com/steam/getBogusList";
-
+  //The remote bogus-appid list (api.xan105.com) is gone: keep the well-known ones locally
   let exclude = [
       480, //Space War
       753, //Steam Config
       250820, //SteamVR
-      228980 //Steamworks Common Redistributables
+      228980, //Steamworks Common Redistributables
+      1070560, //Steam Linux Runtime 1.0 (scout)
+      1391110, //Steam Linux Runtime 2.0 (soldier)
+      1628350, //Steam Linux Runtime 3.0 (sniper)
+      1493710 //Proton Experimental
   ];
-  
-  try{
-      let srvExclusion = (await request.getJson(url)).data;
-      debug.log("blacklist from srv:");
-      debug.log(srvExclusion);
-      exclude = [...new Set([...exclude,...srvExclusion])];
-  }catch(err){
-      //Do nothing
- }
-  
+
  try{
       let userExclusion = JSON.parse(await ffs.readFile(file,"utf8")); 
       exclude = [...new Set([...exclude,...userExclusion])];

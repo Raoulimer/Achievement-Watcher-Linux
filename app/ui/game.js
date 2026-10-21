@@ -13,8 +13,7 @@ function getSteamGlobalStat(appid) {
       success: (data) => { 
         for (const globalStat of data.achievementpercentages.achievements) {      
            
-           const percent = Math.round(globalStat.percent * 10) / 10;
-           if(percent > 100) percent = 100;
+           const percent = Math.min(Math.round(+globalStat.percent * 10) / 10, 100);
         
            const elem = $(`#achievement li .achievement[data-name="${globalStat.name}"]`);
            
