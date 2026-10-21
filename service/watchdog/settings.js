@@ -63,7 +63,7 @@ module.exports.load = async (cfg_file) => {
         //Source
         
         if (options.achievement_source.legitSteam != 0 && options.achievement_source.legitSteam != 1 && options.achievement_source.legitSteam != 2){
-          options.achievement_source.legitSteam = 0;
+          options.achievement_source.legitSteam = 1;
           fixFile = true;
         }
         
@@ -73,7 +73,7 @@ module.exports.load = async (cfg_file) => {
         }
         
         if (typeof options.achievement_source.greenLuma !== "boolean"){
-          options.achievement_source.greenLuma = true;
+          options.achievement_source.greenLuma = false;
           fixFile = true;
         }
         
@@ -83,7 +83,7 @@ module.exports.load = async (cfg_file) => {
         }
         
         if (typeof options.achievement_source.lumaPlay !== "boolean"){
-          options.achievement_source.lumaPlay = true;
+          options.achievement_source.lumaPlay = false;
           fixFile = true;
         }
         
@@ -100,7 +100,7 @@ module.exports.load = async (cfg_file) => {
         }
 
         if (typeof options.notification.rumble !== "boolean"){
-          options.notification.rumble = true;
+          options.notification.rumble = false;
           fixFile = true;
         }
         
@@ -109,6 +109,21 @@ module.exports.load = async (cfg_file) => {
           fixFile = true;
         }
         
+        if (![6,12,20,30,60].includes(+options.notification.inGameDuration)){
+          options.notification.inGameDuration = 12;
+          fixFile = true;
+        }
+
+        if (!["bottom-right","top-right","bottom-left","top-left"].includes(options.notification.inGamePosition)){
+          options.notification.inGamePosition = "bottom-right";
+          fixFile = true;
+        }
+
+        if (typeof options.notification.inGamePopup !== "boolean"){
+          options.notification.inGamePopup = true;
+          fixFile = true;
+        }
+
         if (typeof options.notification.playtime !== "boolean"){
           options.notification.playtime = false;
           fixFile = true;
@@ -126,6 +141,11 @@ module.exports.load = async (cfg_file) => {
           fixFile = true;
         }
         
+        if (typeof options.notification_toast.audioFile !== "string"){
+          options.notification_toast.audioFile = "";
+          fixFile = true;
+        }
+
         if (typeof options.notification_toast.groupToast !== "boolean"){
           options.notification_toast.groupToast = false;
           fixFile = true;
@@ -139,12 +159,12 @@ module.exports.load = async (cfg_file) => {
         }
         
         if (typeof options.notification_transport.winRT !== "boolean"){
-          options.notification_transport.winRT = true;
+          options.notification_transport.winRT = false;
           fixFile = true;
         }
         
         if (typeof options.notification_transport.balloon !== "boolean"){
-          options.notification_transport.balloon = true;
+          options.notification_transport.balloon = false;
           fixFile = true;
         }
         
@@ -154,7 +174,7 @@ module.exports.load = async (cfg_file) => {
         }
         
         if (typeof options.notification_transport.gntp !== "boolean"){
-          options.notification_transport.gntp = true;
+          options.notification_transport.gntp = false;
           fixFile = true;
         }  
 
@@ -183,7 +203,7 @@ module.exports.load = async (cfg_file) => {
         //Souvenir
         
         if (typeof options.souvenir_screenshot.screenshot !== "boolean"){
-          options.souvenir_screenshot.screenshot = true;
+          options.souvenir_screenshot.screenshot = false;
           fixFile = true;
         }
         
@@ -286,30 +306,34 @@ module.exports.load = async (cfg_file) => {
             hideZero: false
           },
           achievement_source: {
-            legitSteam: 0,
+            legitSteam: 1,
             steamEmu: true,
-            greenLuma: true,
+            greenLuma: false,
             rpcs3: true,
             lumaPlay: false,
             importCache: true
           },
           notification: {
             notify: true,           
-            rumble: true,
+            rumble: false,
             notifyOnProgress: true,
+            inGamePopup: true,
+            inGameDuration: 12,
+            inGamePosition: "bottom-right",
             playtime: false
           },
           notification_toast: {
             customToastAudio: 1,
             toastSouvenir: 0,
+            audioFile: "",
             groupToast: false 
           },
           notification_transport: {
             toast: true,
-            winRT: true,
-            balloon: true,
+            winRT: false,
+            balloon: false,
             websocket: true,
-            gntp: true
+            gntp: false
           },
           notification_advanced: {
             timeTreshold: 10,
@@ -318,7 +342,7 @@ module.exports.load = async (cfg_file) => {
             iconPrefetch: true          
           },
           souvenir_screenshot: {
-            screenshot: true,
+            screenshot: false,
             custom_dir: "",
             overwrite_image: false
           },

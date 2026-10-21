@@ -4,11 +4,11 @@
     <title>Achievement Watcher</title>
     <meta charset="UTF-8">
     <meta name="author" content="Beaumont Anthony">  
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-8bN0RHehxwM+NantiQEoMGefMcuLhhUiisPMRn1ajz0='; style-src 'self' 'unsafe-inline';  font-src 'self'; media-src 'self'; img-src 'self' data: https://*; connect-src 'self' https://api.steampowered.com ws://localhost:8082";>
-    <link rel="stylesheet" href="../resources/css/normalize.css" type="text/css" integrity="sha384-YfJLN8pRq0ZV6AMOTTzwQZx1EoYsiIoui3kXZInyzH6LnGBtaHvCXVtQq0mDIvXj"/>
-    <link rel="stylesheet" href="../resources/css/fontawesome.css" type="text/css" integrity="sha384-e5X9merJxSRbQ+hGNUE7iLL7gCXJqDu8YQsh7//vQ+2zgtk/9Juuj68g8/XjU9Y5"/>
-    <link rel="stylesheet" href="../resources/css/app.css" type="text/css" integrity="sha384-WNemsoPda7OORR2YaoId75AgFZ9R6So+zpRZQqg1kN9cvdBcXNWvkx5g8w7mZ/TX"/>
-    <link rel="stylesheet" href="../locale/override.css" type="text/css" integrity="sha384-RgX1K5cNulJZs9JOVw1WHsHr8DzJNSVYq4ydtv15hguYIZoL/YEui+glVdIDmC3A"/>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-8bN0RHehxwM+NantiQEoMGefMcuLhhUiisPMRn1ajz0='; style-src 'self' 'unsafe-inline';  font-src 'self'; media-src 'self' file:; img-src 'self' file: data: https://*; connect-src 'self' https://api.steampowered.com ws://localhost:8082";>
+    <link rel="stylesheet" href="../resources/css/normalize.css" type="text/css" integrity="sha384-M86HUGbBFILBBZ9ykMAbT3nVb0+2C7yZlF8X2CiKNpDOQjKroMJqIeGZ/Le8N2Qp"/>
+    <link rel="stylesheet" href="../resources/css/fontawesome.css" type="text/css" integrity="sha384-2eY9+teNzWBWcmh0K64vzjextrtROU9j9jhkDq4CbtWLeu7dygpWIg5eyTCcynyX"/>
+    <link rel="stylesheet" href="../resources/css/app.css" type="text/css" integrity="sha384-jFkGIAM0cwkCw4W/sobuQ258L8xCCdPgGiZSVlWmlG35HNyWtORaloyyTX1h+uXM"/>
+    <link rel="stylesheet" href="../locale/override.css" type="text/css" integrity="sha384-DoQAH1c7MrllKwUMYMKpWKntZYwfEdH6+swnxj8lP0pMRPvBA8dkldNAM64csxJt"/>
   </head>
   <body>
     
@@ -154,28 +154,23 @@
                
              <section class="content" data-view="debug">
                <ul>
-                <li class="title">Toast Notification Test</li>
+                <li class="title">Desktop Notification Test</li>
                 <li>
-                  <div id="notify_test" class="btn"><i class="fas fa-bread-slice"></i> <span>Toast Test</span></div> 
-                  <span><a href="https://github.com/xan105/Achievement-Watcher#notification-on-achievement-unlocking" target="_blank">More info</a></span>
+                  <div id="notify_test" class="btn"><i class="fas fa-bread-slice"></i> <span>Notification Test</span></div> 
                </li>
                <li>
-                <a href="ms-settings:quiethours" target="_blank" class="btn"><i class="fas fa-moon fa-flip-horizontal"></i> <span>Focus Assist</span></a>
-                <a href="ms-settings:notifications" target="_blank" class="btn"><i class="fas fa-comment"></i> <span>Notifications & actions</span></a>
-               </li>
-               <li>
-                <div id="focus-assist-state">Focus Assist current state : <span></span></div>
+                <div id="watchdog-state">Watchdog service : <span>checking...</span></div>
                </li>
                <li>
                  <p>
-                  Windows 7 doesn't have toast notification.<br/>
-                  Windows 8.1 : Don't forget quiet hours.<br/>
-                  Windows 10 >= 1903 : New focus assist auto rule for fullscreen app set to alarm only by default prevents the notification from working out of the box.
+                  The watchdog (systemd user service <code>achievement-watchdog</code>) sends the notification. Check it with <code>systemctl --user status achievement-watchdog</code>.<br/>
+                  GNOME holds back normal notifications while a fullscreen game has focus and shows them when you leave it; the achievement sound still plays right away.<br/>
+                  "Do Not Disturb" in the GNOME quick settings silences everything.
                  </p>
                </li>
                </ul>
                
-               <ul>
+               <ul class="win-only">
                 <li class="title">Growl Network Transport Protocol (GNTP) Test</li>
                 <li><div id="gntp_test" class="btn"><i class="fas fa-paw"></i> <span>Grrr !</span></div> <span>localhost</span>:<span>23053</span></li>
                </ul>             
@@ -194,13 +189,11 @@
                     <div class="title"><i class="fas fa-key"></i> Steam Web API Key</div>
                     <div class="disclaimer">                
                       <p>
-                      Some use of the Steam Web API to fetch data from Steam requires the use of an API Key.  
+                      Not needed for your Steam games: achievements, unlock times, hidden flags and artwork are read offline from the Steam client.
                       </p>
 
                       <p>
-                      Leave this field blank to automagically fetch said data.<br />
-                      This service is not guarantee over time and is solely provided for your own convenience.<br />
-                      If you experience any issues please use your own Steam Web API key.              
+                      Only used as a fallback to get the achievement list of a non-Steam (emulator) game that your Steam client has never cached.
                       </p>              
                         
                       <p>                
@@ -247,7 +240,7 @@
                         </div>
                       </li>
                        
-                     <li class="hasHelper">
+                     <li class="win-only hasHelper">
                         <div class="left"><i class="fas fa-cubes"></i> <span>GreenLuma</span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -273,7 +266,7 @@
                         <div class="help"></div>
                       </li>
                       
-                     <li class="hasHelper">
+                     <li class="win-only hasHelper">
                         <div class="left"><i class="fas fa-file-alt"></i> <span>LumaPlay</span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -307,43 +300,32 @@
                <div class="title"><span></span></div>
                <ul id="defaultdir">
                  <li>
-                    <div class="path"><span class="constant">%PUBLIC%</span>\Documents\Steam\CODEX</div>
+                    <div class="path"><span class="constant">Steam</span>/appcache/stats (legit Steam, native / Flatpak / Snap)</div>
                     <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                  <li>
-                    <div class="path"><span class="constant">%appdata%</span>\Goldberg SteamEmu Saves</div>
+                    <div class="path"><span class="constant">~</span>/.steam/Goldberg SteamEmu Saves</div>
                     <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                  <li>
-                    <div class="path"><span class="constant">%appdata%</span>\EMPRESS</div>
+                    <div class="path"><span class="constant">~</span>/.local/share/Goldberg SteamEmu Saves</div>
                     <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                  <li>
-                    <div class="path"><span class="constant">%PUBLIC%</span>\EMPRESS</div>
+                    <div class="path"><span class="constant">~</span>/.steam/EMPRESS</div>
                     <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                  <li>
-                    <div class="path"><span class="constant">%appdata%</span>\Steam\CODEX</div>
-                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
-                 </li> 
-                 <li>
-                    <div class="path"><span class="constant">%ProgramData%</span>\Steam\*</div>
-                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
-                 </li> 
-                 <li>
-                    <div class="path"><span class="constant">%localappdata%</span>\SKIDROW</div>
-                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
-                 </li> 
-                 <li>
-                    <div class="path"><span class="constant">%DOCUMENTS%</span>\SkidRow</div>
-                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
-                 </li> 
-                 <li>
-                    <div class="path"><span class="constant">%appdata%</span>\SmartSteamEmu</div>
+                    <div class="path"><span class="constant">~/Documents</span>/Steam/CODEX</div>
                     <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                  <li>
-                    <div class="path"><span class="constant">%appdata%</span>\CreamAPI</div>
+                    <div class="path"><span class="constant">~</span>/.steam/SKIDROW</div>
+                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
+                 </li>
+                 <li>
+                    <div class="path"><span class="constant">~</span>/.steam/SmartSteamEmu</div>
+                    <div class="controls"><ul><li><i class="fas fa-bell"></i></li></ul></div>
                  </li>
                </ul>
                
@@ -404,8 +386,8 @@
                     </div></li>
                   </ul>
                   
-                  <div class="title"><span></span></div>
-                  <ul id="options-souvenir-video">
+                  <div class="title win-only"><span></span></div>
+                  <ul id="options-souvenir-video" class="win-only">
                       <li class="hasHelper expand">
                         <div class="left"><i class="fas fa-video"></i> <span></span></div>
                             <div class="right">
@@ -496,7 +478,7 @@
 
                   </ul>
                   
-                  <ul id="custom_dir_video">
+                  <ul id="custom_dir_video" class="win-only">
                     <li><div class="left"><i class="fas fa-folder-open"></i> <span></span></div>
                     <div class="right">
                       <div class="btn" data-path=""> <span></span></div>
@@ -524,7 +506,7 @@
                         <div class="help"></div>
                       </li>
                       
-                     <li class="hasHelper">
+                     <li class="win-only hasHelper">
                         <div class="left"><i class="fas fa-gamepad"></i> <span></span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -562,6 +544,50 @@
                         </div>
                         <div class="help"></div>
                       </li>
+
+                     <li class="hasHelper linux-only">
+                        <div class="left"><i class="fas fa-gamepad"></i> <span>Show over games</span></div>
+                        <div class="right">
+                         <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
+                          <select autocomplete="off" id="option_inGamePopup">
+                            <option value="true" selected>Enable</option>
+                            <option value="false">Disable</option>
+                          </select>
+                         <div class="next"><span class="arrow"><i class="fas fa-chevron-right"></i></span></div>
+                        </div>
+                        <div class="help">While a game runs, show an achievement toast over it (it never takes focus from the game). Respects Do Not Disturb.</div>
+                      </li>
+
+                     <li class="hasHelper linux-only">
+                        <div class="left"><i class="fas fa-stopwatch"></i> <span>Over-game pop-up time</span></div>
+                        <div class="right">
+                         <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
+                          <select autocomplete="off" id="option_inGameDuration">
+                            <option value="6">6 seconds</option>
+                            <option value="12" selected>12 seconds</option>
+                            <option value="20">20 seconds</option>
+                            <option value="30">30 seconds</option>
+                            <option value="60">60 seconds</option>
+                          </select>
+                         <div class="next"><span class="arrow"><i class="fas fa-chevron-right"></i></span></div>
+                        </div>
+                        <div class="help">How long the pop-up stays on screen over a game.</div>
+                      </li>
+
+                     <li class="hasHelper linux-only">
+                        <div class="left"><i class="fas fa-expand-arrows-alt"></i> <span>Over-game pop-up corner</span></div>
+                        <div class="right">
+                         <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
+                          <select autocomplete="off" id="option_inGamePosition">
+                            <option value="bottom-right" selected>Bottom right</option>
+                            <option value="top-right">Top right</option>
+                            <option value="bottom-left">Bottom left</option>
+                            <option value="top-left">Top left</option>
+                          </select>
+                         <div class="next"><span class="arrow"><i class="fas fa-chevron-right"></i></span></div>
+                        </div>
+                        <div class="help">Where the achievement toast appears over the game.</div>
+                      </li>
                       
                   </ul>
                   
@@ -596,7 +622,7 @@
                         <div class="help"></div>
                       </li>
                       
-                      <li class="hasHelper">
+                      <li class="win-only hasHelper">
                         <div class="left"><i class="fas fa-images"></i> <span></span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -610,7 +636,7 @@
                         <div class="help"></div>
                       </li>
 
-                      <li class="hasHelper expand">
+                      <li class="win-only hasHelper expand">
                         <div class="left"><i class="fas fa-layer-group"></i> <span></span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -640,7 +666,7 @@
                         <div class="help"></div>
                       </li>
 
-                      <li class="hasHelper">
+                      <li class="win-only hasHelper">
                         <div class="left"><i class="fab fa-windows"></i> <span></span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -653,7 +679,7 @@
                         <div class="help"></div>
                       </li>
                       
-                      <li class="hasHelper">
+                      <li class="win-only hasHelper">
                         <div class="left"><i class="far fa-comment"></i> <span></span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -679,7 +705,7 @@
                         <div class="help"></div>
                       </li>
                       
-                      <li class="hasHelper expand">
+                      <li class="win-only hasHelper expand">
                         <div class="left"><i class="fas fa-paw"></i> <span>GNTP @localhost:23053</span></div>
                         <div class="right">
                          <div class="previous"><span class="arrow"><i class="fas fa-chevron-left"></i></span></div>
@@ -779,7 +805,7 @@
              <div class="footer">
                  <div class="notice">
                       <p><span></span> <span></span></p>
-                      <p><i class="fab fa-github"></i> <a href="https://github.com/xan105/Achievement-Watcher" target="_blank">xan105/achievement-watcher</a></p>
+                      <p><i class="fab fa-github"></i> <a href="https://github.com/Raoulimer/Achievement-Watcher-Linux" target="_blank">Linux port</a> · based on <a href="https://github.com/xan105/Achievement-Watcher" target="_blank">xan105/achievement-watcher</a></p>
                  </div>
                  <div class="buttons">
                     <div id="btn-settings-cancel"></div>
@@ -793,12 +819,12 @@
     </main>
           
 <script>window.$ = window.jQuery = require('../ui/lib/jquery-3.3.1.min.js');</script>
-<script src="../components/register.js" type="module" integrity="sha384-wBb/1HGBVjZOt2ymWl65pXV+cwB6D+lo2T6Zpyo0ls2FzkL442ZxF0yuwRK1KmxI"></script>
-<script src="../ui/sort.js" type="text/javascript" integrity="sha384-srGK0g0zaKJUJEFcLQz9vnv55SJW8etijR3FzTlJ8IqIHFjVuD6n1phwTcquCi9W"></script>
-<script src="../ui/search.js" type="text/javascript" integrity="sha384-By5oWzGskBTC1XqCIzvFFFTJJgdM/50a2WPyoxfvbRywzu1T/2BhphaPZpZLqrDI"></script> 
-<script src="../ui/game.js" type="text/javascript" integrity="sha384-1XcJakkQyMGeWk/OQ0dByqS2hkJWe/XmszPOef0878DBp3PnFDYWZ0fKb0y6dmSu"></script>
-<script src="../ui/refresh.js" type="text/javascript" integrity="sha384-+Y57rDV2mODA9UOpOSxhzSVjxS4vHVYvLO9/qmgiNSauxBhI4LaXEl7PWebm2U5J"></script>
-<script src="../ui/settings.js" type="text/javascript" integrity="sha384-YnynJlQX83+L4QX7rJ9HbemFtnRTrvNgM7YJ63wvkfgytLHFUynRXXh/kugvHjQy"></script>
-<script src="../app.js" type="text/javascript" integrity="sha384-UtODfYmVE+vOM0yILnCvurAVj/35oMY6eCZbzN0EMW1BvwYMPsg/9e1dk8aoOERa"></script>     
+<script src="../components/register.js" type="module" integrity="sha384-65zusk6R8b3JqJdnOJSVH0bu/m2JPDzNmOYckmw+qctZ8MiYh6Cde5i/tHXdptmZ"></script>
+<script src="../ui/sort.js" type="text/javascript" integrity="sha384-OemRpAVEKBZekZcm+6OneJRXetRrm99HejKRfpqCpNXl86dliv/VjUZYFJqQ/Hfr"></script>
+<script src="../ui/search.js" type="text/javascript" integrity="sha384-PVnICSZYND/0+MCn4JyVdJKJta3zWicWChrQSDIXWpYXMp7f/QYf+RQyZ5I/Zq3N"></script> 
+<script src="../ui/game.js" type="text/javascript" integrity="sha384-C23VymmvXCgr+bQhSW3ZpfjEl2jUrz7XWjztppbOHDq9QHzfYXMe1s/ZhSVYlEhL"></script>
+<script src="../ui/refresh.js" type="text/javascript" integrity="sha384-XGFTMjyKf6Shj0zP9ZRFLAmuJcsN+y91uPGXclQuI7HPF1d92RSwCqaW+7nsi0y1"></script>
+<script src="../ui/settings.js" type="text/javascript" integrity="sha384-RKNwx/vabcCNKvNl6B+L9T3xAIz3CmvtYkUH6tI8sMQAj/bC7fgOysSXolp6h0rs"></script>
+<script src="../app.js" type="text/javascript" integrity="sha384-wMVk80CFBNswPPHXxWpY/i97msIQAacxto9Dab68q41+UJfdeVNX9z+sJyGR9r0r"></script>     
   </body>
 </html>

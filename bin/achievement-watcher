@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Start the Achievement Watcher UI (args are forwarded: --appid <id> --name <achievement> opens that game)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+ELECTRON="$ROOT/app/node_modules/electron/dist/electron"
+
+if [[ ! -x "$ELECTRON" ]]; then
+  echo "Electron is missing: run $ROOT/install.sh first" >&2
+  exit 1
+fi
+
+exec "$ELECTRON" "$ROOT/app" "$@"

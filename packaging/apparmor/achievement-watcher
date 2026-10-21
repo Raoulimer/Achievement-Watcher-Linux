@@ -1,0 +1,10 @@
+# Lets Electron (Chromium) create the user namespace its sandbox needs on Ubuntu >= 23.10.
+# Same unconfined profile Ubuntu ships for VS Code / Chrome: it only names the binary, nothing is restricted.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile achievement-watcher "@ELECTRON@" flags=(unconfined) {
+  userns,
+
+  include if exists <local/achievement-watcher>
+}

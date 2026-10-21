@@ -1,42 +1,22 @@
 "use strict"
 
-const { spawn } = require("child_process");
+const fs = require("fs/promises");
+const os = require("os");
 
-module.exports = (option = {}) => {
-    return new Promise((resolve, reject) => {
-    
-        const options = {
-          ignoreSystemDrive : option.ignoreSystemDrive || false
-        }
-        
-        const cmd = spawn('cmd');
-        let error = []; 
-        
-        cmd.stdout.on('data', function (data) {
-            const output = String(data).split("\r\n").map(e=>e.trim()).filter(e=>e!="");
-            if (output[0] === "Name") resolve(output.slice(1));
-        });
+/*
+  Places that can hold games: the home folder and data disks under /media, /mnt, /run/media.
+  "/" itself is never returned: a recursive scan of it would walk /proc, /sys and /usr.
+*/
+const fsTypes = ["ext2", "ext3", "ext4", "btrfs", "xfs", "f2fs", "zfs", "ntfs", "ntfs3", "fuseblk", "exfat", "vfat"];
 
-        cmd.stderr.on('data', function (data) {
-            error.push(data);
-        });
+module.exports = async () => {
 
-        cmd.on('exit', function (code) {
-            if (code !== 0){
-                if (error.length > 0) {
-                  reject(code + " " + error.join());
-                } else {
-                  reject(code);
-                }
-            }
-        });
-        
-        //WMIC LogicalDisk Where "DeviceID !='C:'" Get DeviceID, FreeSpace, Size, VolumeName 2>Nul
-        if (options.ignoreSystemDrive) {
-          cmd.stdin.write(`WMIC LogicalDisk Where "DeviceID !='%SystemDrive%' And DriveType ='3'" Get Name\n`);
-        } else {
-          cmd.stdin.write(`WMIC LogicalDisk Where "DriveType ='3'" Get Name\n`);
-        }
-        cmd.stdin.end();
-    })
+    const mounts = (await fs.readFile("/proc/self/mounts", "utf8"))
+        .split("\n")
+        .map(line => line.split(" "))
+        .filter(([, mountpoint, type]) => mountpoint && fsTypes.includes(type))
+        .map(([, mountpoint]) => mountpoint.replace(/\\040/g, " "))
+        .filter(mountpoint => /^\/(media|mnt|run\/media)\//.test(mountpoint));
+
+    return [...new Set([os.homedir(), ...mounts])];
 }

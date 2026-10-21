@@ -4,11 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const https = require('https');
-const EventEmitter = require('emittery');
 const ws = require('ws');
-const moment = require("moment");
-const os = require('os');
-const appData = process.env['APPDATA'] || (process.platform == 'darwin' ? path.join(process.env.HOME, 'Library', 'Application Support') : path.join(process.env.HOME, '.config'));
+const appData = require("./util/appData.js");
 const debug = new (require("@xan105/log"))({
   console: true,
   file: path.join(appData,"Achievement Watcher/logs/websocket.log")
@@ -18,12 +15,20 @@ const test = require("./notification-test.js");
 
 let WebSocket;
 
+/*
+  Browsers let any web page open a websocket to localhost, they only tell us who is asking (Origin header).
+  Allowed: local clients that send no Origin (OBS, scripts), the Achievement Watcher UI (file://) and local files ("null").
+*/
+function isAllowedOrigin(origin) {
+  return origin === undefined || origin === "null" || origin === "file://";
+}
+
 module.exports = (option = {}) => {
 
   //Default values
   const options = {
     port: Number.isInteger(option.port) ? option.port : 8082,
-    host: option.host || null,
+    host: option.host || "127.0.0.1", //local apps only (OBS overlay, Achievement Watcher UI): never expose it to the LAN
     ipv6Only: option.ipv6Only || false,
     timeout: Number.isInteger(option.timeout) ? option.timeout : 30000, //30sec
     ssl: option.ssl || false,
@@ -35,14 +40,18 @@ module.exports = (option = {}) => {
   if (options.ssl) 
   {
     server = https.createServer({
-      cert: fs.readFileSync('./ssl/cert.pem'),
-      key: fs.readFileSync('./ssl/key.pem')
+      cert: fs.readFileSync(path.join(__dirname, 'ssl/cert.pem')),
+      key: fs.readFileSync(path.join(__dirname, 'ssl/key.pem'))
     });
   } 
   else 
   {
     server = http.createServer();
   }
+  //Port taken (another watchdog, another app): run without the websocket instead of crashing the whole watchdog
+  server.on('error', (err) => {
+    debug.error(`Websocket server error: ${err.message}${err.code === "EADDRINUSE" ? ` > websocket disabled, port ${options.port} is used by another program` : ""}`);
+  });
   server.listen({ port: options.port, host: options.host, ipv6Only: options.ipv6Only }); //Start http(s) server
   
   WebSocket = new ws.Server({ noServer: true }); //WebSocket server detached from the http(s) server
@@ -51,6 +60,13 @@ module.exports = (option = {}) => {
 
   //Handle client authentication in the upgrade event (http->ws) of the http(s) server
   server.on('upgrade', function upgrade(request, socket, head) {
+
+     if (!isAllowedOrigin(request.headers.origin)) {
+       debug.warn(`Websocket connection refused from origin "${request.headers.origin}"`);
+       socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+       socket.destroy();
+       return;
+     }
 
      if (options.auth) //Client authentication
      {
@@ -76,8 +92,6 @@ module.exports = (option = {}) => {
       });
   });
   
-  const emitter = new EventEmitter();
-  
   WebSocket.on('connection', (client, req) => {
   
      //client identification
@@ -89,16 +103,12 @@ module.exports = (option = {}) => {
      client.isAlive = true;
      client.on('pong', function(){ this.isAlive = true });
      
-     //client.on('message', function(message){ emitter.emit('message', [this, message]) });
      client.on('message', incoming);
      client.on('close', function(code, reason){ debug.log(`[${this.id}](${this.ip}) connection close (${code}) ${reason}`) });
      client.on('error', function(err){ debug.error(`[${this.id}](${this.ip}) Error: ${err}`) });
   });
   
-  WebSocket.on('error', (err) => {
-    if (err.code === "EADDRINUSE") throw new Error(err.message);
-    debug.error(`Server error: ${err}`);
-  });
+  WebSocket.on('error', (err) => debug.error(`Server error: ${err}`));
   
   //heartbeat
   setInterval(() => {
@@ -112,12 +122,16 @@ module.exports = (option = {}) => {
     });
   }, options.timeout);
   
-  return emitter;
+  return server;
 }
 
-module.exports.broadcast = (message) => {
+module.exports.isAllowedOrigin = isAllowedOrigin;
+
+module.exports.broadcast = broadcast;
+
+function broadcast(message) {
   try {
-    if (WebSocket.clients.size > 0) {
+    if (WebSocket?.clients.size > 0) {
       
       let json = JSON.stringify(message);
       
@@ -155,7 +169,7 @@ function incoming(message){
            displayName: "Winner",
            description: "Win one game.",
            icon: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/480/winner.jpg",
-           time: moment().valueOf()
+           time: Math.floor(Date.now() / 1000)
         };
                 
         if (req.broadcast === true) {

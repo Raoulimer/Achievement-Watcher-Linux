@@ -7,7 +7,7 @@ const parentFind = require('find-up');
 const glob = require("fast-glob");
 const ffs = require("@xan105/fs");
 const listDrive = require(path.join(appPath,"util/listDrive.js"));
-const regedit = require('regodit');
+const { mydocs } = require(path.join(appPath,"util/userShellFolder.js"));
 
 const file = path.join(remote.app.getPath('userData'),"cfg/userdir.db");
 
@@ -36,7 +36,11 @@ module.exports.find = async () => {
       "$Recycle.Bin", 
       "$RECYCLE.BIN", 
       "Recovery",
-      "MSOCache"
+      "MSOCache",
+      "**/node_modules/**",
+      "**/.cache/**",
+      "**/snap/**",
+      "**/.local/share/Trash/**"
     ];
 
     try{
@@ -131,7 +135,6 @@ module.exports.scan = async (dir) => {
         
       } else if(info.Settings.AppID && info.Settings.PlayerName && info.Settings.SaveType == 1) {
       
-            const mydocs = await regedit.promises.RegQueryStringValueAndExpand("HKCU","Software/Microsoft/Windows/CurrentVersion/Explorer/User Shell Folders","Personal");
             if (mydocs) {
               
               result.push({ appid: info.Settings.AppID,
@@ -217,7 +220,6 @@ module.exports.scan = async (dir) => {
                 
         } else if (info.GameSettings.UserDataFolder === "mydocs" && info.GameSettings.AppId && info.GameSettings.UserName && info.GameSettings.UserName !== ""){
         
-            const mydocs = await regedit.promises.RegQueryStringValueAndExpand("HKCU","Software/Microsoft/Windows/CurrentVersion/Explorer/User Shell Folders","Personal");
             if (mydocs) {
 
               let dirpath = path.join(mydocs,info.GameSettings.UserName,info.GameSettings.AppId,"SteamEmu");

@@ -1,0 +1,28 @@
+[Unit]
+Description=Achievement Watcher watchdog (real-time achievement notifications)
+Documentation=file://@ROOT@/README.md
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=@ROOT@/service/watchdog
+# Electron's bundled Node.js: no system Node needed at runtime, no Chromium (and no sandbox) started
+Environment=ELECTRON_RUN_AS_NODE=1
+Environment=AW_LAUNCHER=@ROOT@/bin/achievement-watcher
+ExecStart="@ELECTRON@" "@ROOT@/service/watchdog/watchdog.js"
+Restart=on-failure
+RestartSec=5
+Nice=5
+
+# Hardening that works in a user manager (no capabilities to drop, no mount namespaces):
+# seccomp-based filters only. The watchdog reads Steam/emulator files, writes its cache in ~/.config,
+# talks to D-Bus (notifications), PipeWire (sound), localhost (websocket) and the Steam CDN (icons).
+NoNewPrivileges=yes
+RestrictRealtime=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=graphical-session.target

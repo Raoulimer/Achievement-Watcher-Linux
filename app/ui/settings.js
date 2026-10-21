@@ -48,9 +48,9 @@ const appPath = remote.app.getAppPath();
                }
         }
 
-        $('#option_customToastAudio').find('option[value="1"]').attr("data-file",toastAudio.getDefault());
+        $('#option_customToastAudio').find('option[value="1"]').attr("data-file",toastAudio.getDefault() || "");
         if ( $('#option_customToastAudio option:selected').val() == 2 ) {
-          $(`#option_customToastAudio option[data-file="${toastAudio.getCustom()}"]`).prop("selected", true);
+          $(`#option_customToastAudio option[data-file="${app.config.notification_toast.audioFile || ""}"]`).prop("selected", true);
         }
         $('#option_customToastAudio').on('change', function() {
           try{
@@ -61,8 +61,8 @@ const appPath = remote.app.getAppPath();
                 let filename = $(this).find(':selected').data("file");
                 if (!filename || filename == '') return;
                 
-                let file = path.join(process.env['WINDIR'],"Media",filename);
-                $('#customToastAudio_sample').attr("src",file).get(0).play();   
+                let file = (value == 1) ? filename : path.join(toastAudio.SOUNDS_DIR,filename);
+                $('#customToastAudio_sample').attr("src",require("url").pathToFileURL(file).href).get(0).play();
               }
             
           }catch(err){
@@ -95,6 +95,15 @@ const appPath = remote.app.getAppPath();
             $("#steamwebapikey").val(app.config.steam.apiKey);
           }
         }
+
+        //Is the watchdog (systemd user service) answering on its websocket ?
+        (function(){
+          const state = $("#watchdog-state span");
+          const ws = new WebSocket("ws://localhost:8082");
+          const timer = setTimeout(()=>{ ws.close(); }, 2000);
+          ws.onopen = () => { clearTimeout(timer); state.text("running").attr("class","running"); ws.close(); };
+          ws.onerror = () => { clearTimeout(timer); state.text("not running (systemctl --user start achievement-watchdog)").attr("class","stopped"); };
+        })();
 
         $("#dirlist").empty();
         userDir.get()
@@ -233,7 +242,7 @@ const appPath = remote.app.getAppPath();
         app.config.souvenir_video.custom_dir = $("#custom_dir_video div.btn").attr("data-path") || "";
         
         let customToastAudio = $('#option_customToastAudio').find(':selected');
-        if (customToastAudio.val() == 2) toastAudio.setCustom(customToastAudio.data("file"))
+        app.config.notification_toast.audioFile = (customToastAudio.val() == 2) ? customToastAudio.data("file") : "";
         
         let steamApiKey = $("#steamwebapikey").val().trim();
         if (steamApiKey.length > 0){
@@ -526,12 +535,17 @@ const appPath = remote.app.getAppPath();
          let self = $(this);
          self.css("pointer-events","none");
 
-         let dummy = new remote.BrowserWindow({"frame": false, "backgroundColor": "#000000"});
-         dummy.on('closed', () => {
-            dummy = null;
-            self.css("pointer-events","initial");
-         }); 
-         dummy.setFullScreen(true);
+         let dummy;
+         if (process.platform === "win32") { //Fullscreen dummy to test Focus Assist rules
+           dummy = new remote.BrowserWindow({"frame": false, "backgroundColor": "#000000"});
+           dummy.on('closed', () => {
+              dummy = null;
+              self.css("pointer-events","initial");
+           }); 
+           dummy.setFullScreen(true);
+         } else { //GNOME would hold the notification back behind a fullscreen window
+           dummy = { close: () => self.css("pointer-events","initial") };
+         }
 
          setTimeout(()=>{
 
@@ -609,7 +623,7 @@ function populateUserDirList(option){
             }
 
             let template = `<li>
-                <div class="path"><span>${options.dir}</span></div>
+                <div class="path"><span>${esc(options.dir)}</span></div>
                 <div class="controls">
                   <ul>
                     <li class="edit"><i class="fas fa-pen"></i></li>

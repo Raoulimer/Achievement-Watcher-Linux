@@ -1,10 +1,31 @@
-I will be attempting to rewrite this project to run natively on linux. Ill probably use libnotify to replace toast. 
+# Achievement Watcher for Linux
 
-### Linux Port Updates
-*   Swapped Windows toast notifications for `libnotify` (using `node-notifier`) on Linux.
-*   Added mocks for Windows-only dependencies like `tasklist` and `powertoast` to prevent crashes.
-*   Config files now correctly save to `~/.config` on Linux.
-*   **Heads up:** Not a lot of testing has been done yet.
+Your Steam achievements on Linux, with unlock times, progress and spoiler-safe hidden achievements, plus a real-time notification and sound when you unlock one in a game (native or Proton).
+
+### How it works
+* **Legit Steam, offline.** It reads the files Steam keeps in `appcache/stats` (achievement list, your unlock bits and times). You don't need a Steam Web API key or a public profile, and no third-party server is involved. Native, Flatpak and Snap Steam installs are all detected.
+* **Live notifications.** The watchdog (a systemd user service) watches those files with inotify and notifies only for achievements that unlock while you play. Unlocks that Steam Cloud syncs in from another PC stay silent. Notifications go through libnotify (`notify-send`), and the sound plays through PipeWire or PulseAudio. Click a notification to open the achievement in the app.
+* **Spoiler-safe.** Locked hidden achievements stay hidden until you choose to show them.
+* **Progress milestones.** Achievements tied to a stat notify you at 25 / 50 / 75 %.
+* **Session summary (optional).** When you quit a Steam game, it shows the time played and the achievements you earned.
+* Steam emulator sources (Goldberg, CODEX, EMPRESS, SKIDROW...) are supported, including when the game runs under Proton as a non-Steam shortcut. Their save folders are found inside each Proton prefix (`steamapps/compatdata/<id>/pfx`), and new ones are picked up within 30 seconds. Achievement names and icons come from Steam's public `IPlayerService/GetGameAchievements` endpoint, so you don't need an API key.
+
+### Install (Ubuntu / Debian / Fedora / Arch)
+Requires Node.js >= 22.12 and npm to install, plus `notify-send` (libnotify-bin).
+```
+./install.sh        # run as your normal user, NOT with sudo
+```
+`install.sh` installs the dependencies, adds the app-menu entry and enables the `achievement-watchdog` user service. On Ubuntu >= 23.10 it also adds an AppArmor profile (it asks for sudo once), so Electron keeps its sandbox; it never runs with `--no-sandbox`.
+Run it again after a `git pull` to update. Uninstall with `./uninstall.sh` (add `--purge` to also remove settings).
+
+* Watchdog logs: `journalctl --user -u achievement-watchdog -f`
+* Tests: `cd service/watchdog && npm test`
+* Custom Steam location: set `STEAM_ROOT` (for example `systemctl --user edit achievement-watchdog`)
+
+### Notes
+* **Over fullscreen games:** GNOME holds normal notifications until you leave fullscreen and always shows them top-center. While a game runs (it detects the Steam `reaper SteamLaunch` process, non-Steam shortcuts included), the watchdog instead draws its own toast in the bottom-right corner (`service/overlay`). It is a small click-through X11 window of type *notification*, which mutter places in its topmost layer (`META_LAYER_OVERRIDE_REDIRECT`) and never gives focus, so the game keeps fullscreen and input. The desktop notification is filed as low urgency, so it goes to the notification list without a duplicate banner. If the toast can't start, it falls back to a critical GNOME banner. Corner, duration and on/off are in Settings > Notification. Nothing is shown over a game in Do Not Disturb.
+* A game's achievements appear after you have launched it once with Steam online, because that is when Steam caches them.
+* After editing a file loaded by `app/view/app.html`, run `npm run sri` in `app/` to refresh its integrity hashes.
 
 <hr />
 

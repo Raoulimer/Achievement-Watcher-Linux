@@ -5,7 +5,7 @@ const { Menu, MenuItem, nativeImage } = remote;
 const request = require('request-zero');
 
 const { selectFileDialog } = require("./selectFileDialog.js");
-const { getSteamPath, getSteamUsers } = require("../../parser/steam.js");
+const { getSteamUsers } = require("../../parser/steam.js");
 
 const appPath = remote.app.getAppPath();
 
@@ -56,8 +56,7 @@ function contextMenu(e, position = null){
 			icon: nativeImage.createFromPath(path.join(appPath,"resources/img/steam.png")), 
 			label: 'Import from Steam...', 
 			click: function() { 
-				getSteamPath()
-				.then((SteamPath)=>{ return getSteamUsers(SteamPath)})
+				getSteamUsers()
 				.then((SteamUsers)=>{ self.steamUsers = SteamUsers})
 				.then(()=>{
 					menu.closePopup();
@@ -78,7 +77,14 @@ function contextMenu(e, position = null){
 				icon: nativeImage.createFromPath(path.join(appPath,"resources/img/steam.png")),
 				label: `Import ${self.steamUsers[i].name}'s Steam avatar`,
 				click: function() { 
-					request(self.steamUsers[i].profile.avatarFull,{encoding: "base64"}).then((res)=>{
+					//Public avatar URL from the profile XML (available even when the profile is private)
+					request(`https://steamcommunity.com/profiles/${self.steamUsers[i].steamid64}?xml=1`)
+					.then(({ body })=>{
+						const url = body.match(/<avatarFull><!\[CDATA\[(https:\/\/[^\]]+)\]\]><\/avatarFull>/)?.[1];
+						if (!url) throw "Avatar not found in Steam profile";
+						return request(url,{encoding: "base64"});
+					})
+					.then((res)=>{
 						const base64 = `data:${res.headers["content-type"]};charset=utf-8;base64,${res.body}`
 						localStorage.setItem("avatar",base64);
 						self.update();
